@@ -17,8 +17,9 @@ config opennds
 	#option fw_mark_trusted '0x30000'
 	#option fw_mark_blocked '0x40000'
 	list users_to_router 'allow tcp port 3334' # Relay port
-    	list users_to_router 'allow tcp port 2121'
-    	list preauthenticated_users 'allow tcp port 2121 to 192.168.21.21'
+	list users_to_router 'allow tcp port 2121'
+	list preauthenticated_users 'allow tcp port 2121 to 192.168.21.21'
+	# list trusted_users 'allow tcp port 2121 to 192.168.21.21'
 	option maxclients '250'
 
 	# User access to the router
