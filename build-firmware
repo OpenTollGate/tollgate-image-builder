@@ -38,7 +38,9 @@ BASE_PACKAGES=" \
   uclient-fetch \
   urandom-seed \
   urngd \
-  openssh-sftp-server\
+  openssh-sftp-server \
+  opennds \
+  travelmate \
   "
 
 # For the gl-ar300m case, modify the EXTRA_PACKAGES:
