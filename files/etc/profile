@@ -46,4 +46,4 @@ fi
 
 # Start the relay
 /root/./relay &
-
+travelmate.sh &
