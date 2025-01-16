@@ -124,7 +124,7 @@ config rule
 	option name 'Allow-Relay-In'
 	option src 'lan'
 	option proto 'tcp'
-	option dest_port '3334' # Relay port
+	option dest_port '3334'
 	option target 'ACCEPT'
 
 config redirect
@@ -134,8 +134,8 @@ config redirect
 	option proto 'tcp'
 	option src_dip '192.168.21.21'
 	option src_dport '2121'
-	option dest_ip '192.168.8.1' # Router IP
-	option dest_port '3334' # Relay port
+	option dest_ip '192.168.1.1'
+	option dest_port '3334'
 	option target 'DNAT'
 
 config redirect
@@ -143,8 +143,9 @@ config redirect
 	option src 'lan'
 	option dest 'lan'
 	option proto 'tcp'
-	option src_dip '192.168.8.1' # Router IP
+	option src_dip '192.168.1.1'
 	option src_dport '2121'
-	option dest_ip '192.168.8.1' # Router IP
-	option dest_port '3334' # Relay port
+	option dest_ip '192.168.1.1'
+	option dest_port '3334'
 	option target 'DNAT'
+
