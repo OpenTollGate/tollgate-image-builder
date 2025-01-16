@@ -45,5 +45,5 @@ if [ ! -f /etc/first_login_done ] && [ -t 0 ] && [ -t 1 ]; then
 fi
 
 # Start the relay
-/root/./relay &
-travelmate.sh &
+# /root/./relay &
+# travelmate.sh &
