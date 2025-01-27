@@ -1,8 +1,10 @@
 #!/bin/bash
 set -e
+set -x
 
 # Install packages if needed
-sudo apt install -y gawk
+# sudo apt install -y gawk
+# sudo apt-get install -y coreutils
 
 # Build openwrt image
 MODEL=$1
@@ -223,6 +225,9 @@ sudo cp -r $(pwd)/files ${BUILDDIR}/${IMAGEBUILDER_NAME}/
 
 # Then modify the make command to include FILES parameter
 echo "Building ${VERSION} using ${CORES} cores..."
-( cd ${BUILDDIR}/${IMAGEBUILDER_NAME} && sudo make -j${CORES} image PROFILE="$PROFILE" PACKAGES="$COMBINED_PACKAGE_LIST" FILES="${BUILDDIR}/${IMAGEBUILDER_NAME}/files" )
+BUILD_OUTPUT=$( cd ${BUILDDIR}/${IMAGEBUILDER_NAME} && \
+  sudo make -j${CORES} image PROFILE="$PROFILE" \
+  PACKAGES="$COMBINED_PACKAGE_LIST" \
+  FILES="${BUILDDIR}/${IMAGEBUILDER_NAME}/files" 2>&1 | tee >(cat) )
 
 echo "scp -O ${BUILDDIR}/${IMAGEBUILDER_NAME}/bin/targets/${PLATFORM}/${TYPE}/openwrt-${VERSION}-${TARGET_DEVICE}-${PROFILE}-squashfs-sysupgrade.bin root@<dest>:/tmp"
