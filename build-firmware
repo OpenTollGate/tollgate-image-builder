@@ -221,14 +221,45 @@ CORES=$(nproc)
 
 # Add these lines just before the final make command
 echo "Copying custom files..."
-sudo cp -r $(pwd)/files ${BUILDDIR}/${IMAGEBUILDER_NAME}/
+cp -r $(pwd)/files ${BUILDDIR}/${IMAGEBUILDER_NAME}/
+
+# Determine architecture based on platform/type
+case "${PLATFORM}-${TYPE}" in
+  "ath79-generic")
+    BLOSSOM_ARCH="mips_24kc"
+    ;;
+  "mediatek-filogic")
+    BLOSSOM_ARCH="aarch64_cortex-a53"
+    ;;
+  *)
+    echo "Unsupported platform-type combination for blossom downloads: ${PLATFORM}-${TYPE}"
+    exit 1
+    ;;
+esac
+
+# Create packages directory in image builder
+PACKAGES_DIR="${BUILDDIR}/${IMAGEBUILDER_NAME}/packages/local"
+mkdir -p "${PACKAGES_DIR}"
+
+# Download IPK files using blossom_download.py
+echo "Downloading IPK files for architecture ${BLOSSOM_ARCH}..."
+python3 $(pwd)/blossom_download.py "${PACKAGES_DIR}" "${BLOSSOM_ARCH}"
+
+# Generate package index
+echo "Generating package index..."
+(cd ${BUILDDIR}/${IMAGEBUILDER_NAME} && \
+ sudo bash -c 'mkhash() { if [ "$1" = "sha256" ]; then sha256sum "$2" | cut -d" " -f1; else sha256sum "$1" | cut -d" " -f1; fi; }; \
+ export -f mkhash; \
+ export MKHASH=mkhash; \
+ ./scripts/ipkg-make-index.sh packages/local > packages/local/Packages && \
+ gzip -9c packages/local/Packages > packages/local/Packages.gz')
 
 # Then modify the make command to include FILES parameter
 echo "Building ${VERSION} using ${CORES} cores..."
-BUILD_OUTPUT=$( cd ${BUILDDIR}/${IMAGEBUILDER_NAME} && \
+BUILD_OUTPUT=$(cd ${BUILDDIR}/${IMAGEBUILDER_NAME} && \
   sudo make -j${CORES} image PROFILE="$PROFILE" \
   PACKAGES="$COMBINED_PACKAGE_LIST" \
-  FILES="${BUILDDIR}/${IMAGEBUILDER_NAME}/files" 2>&1 | tee >(cat) )
+  FILES="${BUILDDIR}/${IMAGEBUILDER_NAME}/files" 2>&1 | tee >(cat))
 
 echo "${BUILD_OUTPUT}"
 
