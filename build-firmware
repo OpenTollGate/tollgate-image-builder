@@ -230,4 +230,33 @@ BUILD_OUTPUT=$( cd ${BUILDDIR}/${IMAGEBUILDER_NAME} && \
   PACKAGES="$COMBINED_PACKAGE_LIST" \
   FILES="${BUILDDIR}/${IMAGEBUILDER_NAME}/files" 2>&1 | tee >(cat) )
 
+echo "${BUILD_OUTPUT}"
+
+# Check for common error patterns
+if echo "$BUILD_OUTPUT" | grep -q "Failed to open firmware file"; then
+    echo "Error: Build failed - firmware file creation error"
+    exit 1
+fi
+
+if echo "$BUILD_OUTPUT" | grep -q "No such file or directory"; then
+    echo "Error: Build failed - missing files"
+    exit 1
+fi
+
+# Extract the filesystem size from the output
+FILESYSTEM_SIZE=$(echo "$BUILD_OUTPUT" | grep "Filesystem size" | grep -o '[0-9.]\+ Kbytes' | awk '{print $1/1024}')
+
+# After the build command, add:
+OUTPUT_FILE="${BUILDDIR}/${IMAGEBUILDER_NAME}/bin/targets/${PLATFORM}/${TYPE}/openwrt-${VERSION}-${TARGET_DEVICE}-${PROFILE}-squashfs-sysupgrade.bin"
+
+if [ ! -f "$OUTPUT_FILE" ]; then
+    echo "Error: Build failed - output file not created"
+    exit 1
+fi
+
+echo "Build successful! Firmware image created at:"
+echo "Image size (${FILESYSTEM_SIZE}MB)"
+echo "${OUTPUT_FILE}"
+echo
+echo "To deploy, use:"
 echo "scp -O ${BUILDDIR}/${IMAGEBUILDER_NAME}/bin/targets/${PLATFORM}/${TYPE}/openwrt-${VERSION}-${TARGET_DEVICE}-${PROFILE}-squashfs-sysupgrade.bin root@<dest>:/tmp"
