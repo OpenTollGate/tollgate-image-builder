@@ -252,6 +252,9 @@ case "${PLATFORM}-${TYPE}" in
   "ath79-generic")
     BLOSSOM_ARCH="mips_24kc"
     ;;
+  "ath79-nand")
+    BLOSSOM_ARCH="mips_24kc"
+    ;;
   "mediatek-filogic")
     BLOSSOM_ARCH="aarch64_cortex-a53"
     ;;
@@ -280,8 +283,9 @@ echo "Generating package index..."
 
 # Add tollgate packages to the package list
 TOLLGATE_PACKAGES="\
-  tollgate-module-whoami-go \
 "
+#  tollgate-module-whoami-go \
+
 
 # Update the combined package list to include tollgate packages
 COMBINED_PACKAGE_LIST="${COMBINED_PACKAGE_LIST} ${TOLLGATE_PACKAGES}"
