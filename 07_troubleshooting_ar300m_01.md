@@ -29,3 +29,6 @@ In some cases, you can adjust the partition size (depending on device), but this
 If the device supports USB or microSD expansions, install non-essential packages externally rather than in flash (this depends on your environment and device capabilities).
 
 By trying one or more of these steps, you should be able to reduce the total firmware size and successfully include the whoami module for your GL-AR300M16.
+
+
+-------------------------

@@ -75,9 +75,9 @@ case $MODEL in
 
 "gl-ar300m")
   PLATFORM=ath79
-  TYPE=generic
-  TARGET_DEVICE=ath79-generic
-  PROFILE=glinet_gl-ar300m16
+  TYPE=nand
+  TARGET_DEVICE=ath79-nand
+  PROFILE=glinet_gl-ar300m
   EXTRA_PACKAGES="\
     uboot-envtools \
     kmod-usb2 \
@@ -95,6 +95,30 @@ case $MODEL in
     -wpad-basic-mbedtls \
     -wpad-mini \
     "
+;;
+
+"gl-ar300m-nor")
+  PLATFORM=ath79
+  TYPE=generic
+  TARGET_DEVICE=ath79-generic
+  PROFILE=glinet_gl-ar300m16
+  EXTRA_PACKAGES="\
+    uboot-envtools \
+    kmod-usb2 \
+    kmod-usb-core \
+    kmod-usb-storage \
+    luci \
+    luci-ssl \
+    iwinfo \
+    wpad-wolfssl \
+  "
+  REMOVED_PACKAGES="\
+    -odhcpd \
+    -odhcpd-ipv6only \
+    -wpad-basic-wolfssl \
+    -wpad-basic-mbedtls \
+    -wpad-mini \
+  "
 ;;
 
 "gl-mt3000")
@@ -179,7 +203,7 @@ case $MODEL in
 ;;
 
 *)
-  echo "specify build target (gl-mt300n-v2, gl-ar300m, gl-mt3000, gl-mt6000, gl-e750, or archer_mr200)"
+  echo "specify build target (gl-mt300n-v2, gl-ar300m, gl-ar300m-nor, gl-mt3000, gl-mt6000, gl-e750, or archer_mr200)"
   exit 1
 ;;
 esac
