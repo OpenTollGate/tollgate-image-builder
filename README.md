@@ -8,10 +8,6 @@ This script uses OpenWRT's image-builder to create a base firmware for supported
 * This [write-up](https://njump.me/nevent1qqs2yfg6yuzkfd8ymry2hqt9a8vzf86zsuwh4phkmumdfk5kpke95jsppemhxue69uhkummn9ekx7mp0qgst8c37ku3hkdj6e2vun550qu9rzntp4qm700g0ewc0qw2dmnakyxqrqsqqqqqpxv8pu3) provides details on building with the SDK
 * And this [write-up](https://njump.me/nevent1qqsge5zzeya9e0v5pftg2durq5htc6cpd93d3qs7tezcfadsme0ckcqppemhxue69uhkummn9ekx7mp0qgst8c37ku3hkdj6e2vun550qu9rzntp4qm700g0ewc0qw2dmnakyxqrqsqqqqqppkccyz) provides details on generating images with the image builder
 
-### Prepare dependencies before build
-```
-pip3 install nostr
-```
 
 ### To build
 

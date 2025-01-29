@@ -2,9 +2,8 @@
 set -e
 set -x
 
-# Install packages if needed
-# sudo apt install -y gawk
-# sudo apt-get install -y coreutils
+# Install dependencies
+./install-deps.sh
 
 # Build openwrt image
 MODEL=$1
