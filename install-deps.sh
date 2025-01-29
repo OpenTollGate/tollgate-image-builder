@@ -1,13 +1,37 @@
 #!/bin/bash
-set -e
+
+# Set the virtual environment directory (you can change this if needed)
+VENV_DIR=".venv"
 
 # Install system dependencies
-apt-get update
-apt-get install -y gawk coreutils curl tar qemu-system-arm qemu-system-mips qemu-img socat
-# Install python dependencies
-if ! [ -x "$(command -v pip3)" ]; then
-    apt-get install -y python3-pip
+sudo apt-get update
+sudo apt-get install -y gawk coreutils curl tar qemu-system-arm qemu-system-mips socat
+
+# Create the virtual environment if it doesn't exist
+if [ ! -d "$VENV_DIR" ]; then
+  echo "Creating virtual environment..."
+  python3 -m venv "$VENV_DIR"
+  if [ $? -ne 0 ]; then
+    echo "Error creating virtual environment."
+    exit 1
+  fi
+else
+  echo "Virtual environment already exists."
 fi
-pip3 install requests nostr
-apt-get install -y libncurses5-dev libncursesw5-dev curl tar pigz
-pip3 install -r requirements.txt
+
+# Update apt and install build dependencies
+sudo apt-get update
+sudo apt-get install -y build-essential libssl-dev
+
+# Activate the virtual environment
+source "$VENV_DIR/bin/activate"
+
+# Install dependencies using pip (replace with your actual dependencies)
+echo "Installing dependencies..."
+pip3 install nostr --no-deps
+pip3 install cffi>=1.15.0 cryptography>=37.0.4 pycparser>=2.21
+
+# Deactivate the virtual environment (optional, but good practice)
+deactivate
+
+echo "Dependencies installed successfully within the virtual environment."
