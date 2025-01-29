@@ -2,8 +2,10 @@
 set -e
 set -x
 
-# Install dependencies
-./install-deps.sh
+# Install packages if needed
+# sudo apt install -y gawk
+# sudo apt-get install -y coreutils
+pip3 install nostr --break-system-packages
 
 # Build openwrt image
 MODEL=$1
@@ -242,7 +244,7 @@ mkdir -p "${PACKAGES_DIR}"
 
 # Download IPK files using blossom_download.py
 echo "Downloading IPK files for architecture ${BLOSSOM_ARCH}..."
-source venv/bin/activate && python3 $(pwd)/blossom_download.py "${PACKAGES_DIR}" "${BLOSSOM_ARCH}"
+python3 $(pwd)/blossom_download.py "${PACKAGES_DIR}" "${BLOSSOM_ARCH}"
 
 # Generate package index
 echo "Generating package index..."
