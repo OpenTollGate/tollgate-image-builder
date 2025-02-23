@@ -5,22 +5,24 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
-    inputs:
-      model:
-        description: 'Router Model'
-        required: true
-        type: choice
-        options:
-          - gl-mt300n-v2
-          - gl-ar300m
-          - gl-mt3000
-          - gl-mt6000
-          - gl-e750
-          - archer_mr200
 
 jobs:
   build:
+    strategy:
+      matrix:
+        model: [
+          'gl-mt300n-v2',
+          'gl-ar300m',
+          'gl-mt3000',
+          'gl-mt6000',
+          'gl-e750',
+          'archer_mr200'
+        ]
+      fail-fast: false
+
     runs-on: ubuntu-latest
+    name: Build ${{ matrix.model }}
+
     steps:
       - uses: actions/checkout@v3
 
@@ -41,11 +43,9 @@ jobs:
           python-version: '3.x'
 
       - name: Build Firmware
-        env:
-          MODEL: ${{ github.event.inputs.model || 'gl-ar300m' }}
         run: |
           sudo chmod +x ./build-firmware
-          sudo ./build-firmware $MODEL
+          sudo ./build-firmware ${{ matrix.model }}
 
       - name: Find Firmware File
         id: find-firmware
@@ -57,7 +57,7 @@ jobs:
       - name: Upload Firmware Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ steps.find-firmware.outputs.firmware_name }}
+          name: firmware-${{ matrix.model }}
           path: ${{ steps.find-firmware.outputs.firmware_path }}
           retention-days: 5
 
@@ -66,8 +66,8 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: ${{ steps.find-firmware.outputs.firmware_path }}
-          tag_name: release-${{ github.sha }}
-          name: Firmware Build ${{ env.MODEL }}
+          tag_name: release-${{ matrix.model }}-${{ github.sha }}
+          name: Firmware Build ${{ matrix.model }}
           draft: false
           prerelease: false
         env:
