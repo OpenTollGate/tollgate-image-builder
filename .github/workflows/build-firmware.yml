@@ -61,14 +61,3 @@ jobs:
           path: ${{ steps.find-firmware.outputs.firmware_path }}
           retention-days: 5
 
-      - name: Create Release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: ${{ steps.find-firmware.outputs.firmware_path }}
-          tag_name: release-${{ matrix.model }}-${{ github.sha }}
-          name: Firmware Build ${{ matrix.model }}
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
