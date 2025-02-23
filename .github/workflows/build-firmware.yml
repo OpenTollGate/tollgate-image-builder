@@ -1,0 +1,75 @@
+name: Build OpenWRT Firmware
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      model:
+        description: 'Router Model'
+        required: true
+        type: choice
+        options:
+          - gl-mt300n-v2
+          - gl-ar300m
+          - gl-mt3000
+          - gl-mt6000
+          - gl-e750
+          - archer_mr200
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gawk \
+            build-essential \
+            curl \
+            python3 \
+            zstd \
+            libssl-dev
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Build Firmware
+        env:
+          MODEL: ${{ github.event.inputs.model || 'gl-ar300m' }}
+        run: |
+          sudo chmod +x ./build-firmware
+          sudo ./build-firmware $MODEL
+
+      - name: Find Firmware File
+        id: find-firmware
+        run: |
+          FIRMWARE_PATH=$(find /tmp/openwrt-build -name "*sysupgrade.bin" -type f)
+          echo "firmware_path=${FIRMWARE_PATH}" >> $GITHUB_OUTPUT
+          echo "firmware_name=$(basename ${FIRMWARE_PATH})" >> $GITHUB_OUTPUT
+
+      - name: Upload Firmware Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ steps.find-firmware.outputs.firmware_name }}
+          path: ${{ steps.find-firmware.outputs.firmware_path }}
+          retention-days: 5
+
+      - name: Create Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ steps.find-firmware.outputs.firmware_path }}
+          tag_name: release-${{ github.sha }}
+          name: Firmware Build ${{ env.MODEL }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
