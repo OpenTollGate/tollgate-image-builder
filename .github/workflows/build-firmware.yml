@@ -44,6 +44,7 @@ jobs:
             python3-wheel \
             zstd \
             libssl-dev
+          python3 -m pip install --upgrade pip
           python3 -m pip install --no-cache-dir nostr
 
       - name: Build Firmware
