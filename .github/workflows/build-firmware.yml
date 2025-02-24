@@ -23,6 +23,16 @@ jobs:
     runs-on: ubuntu-latest
     name: Build ${{ matrix.model }}
 
+    env:
+      VERSION: "23.05.3"
+      BUILDDIR: "/tmp/openwrt-build"
+      BASE_PACKAGES: >-
+        base-files busybox ca-bundle dnsmasq dropbear firewall4 fstools 
+        kmod-gpio-button-hotplug kmod-leds-gpio kmod-nft-offload libc libgcc 
+        libustream-mbedtls logd mtd netifd nftables odhcp6c opkg ppp 
+        ppp-mod-pppoe procd procd-seccomp procd-ujail swconfig uci 
+        uclient-fetch urandom-seed urngd openssh-sftp-server opennds
+
     steps:
       - uses: actions/checkout@v4
 
@@ -31,7 +41,7 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install Dependencies
+      - name: Install System Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -43,10 +53,80 @@ jobs:
           python -m pip install --upgrade pip
           pip install nostr
 
+      - name: Set Build Variables
+        id: vars
+        run: |
+          case "${{ matrix.model }}" in
+            "gl-ar300m")
+              echo "PLATFORM=ath79" >> $GITHUB_ENV
+              echo "TYPE=generic" >> $GITHUB_ENV
+              echo "TARGET_DEVICE=ath79-generic" >> $GITHUB_ENV
+              echo "PROFILE=glinet_gl-ar300m16" >> $GITHUB_ENV
+              echo "BLOSSOM_ARCH=mips_24kc" >> $GITHUB_ENV
+              echo "EXTRA_PACKAGES=uboot-envtools kmod-usb2 kmod-usb-core kmod-usb-storage luci luci-ssl iwinfo wpad-wolfssl" >> $GITHUB_ENV
+              echo "REMOVED_PACKAGES=-odhcpd -odhcpd-ipv6only -wpad-basic-wolfssl -wpad-basic-mbedtls -wpad-mini" >> $GITHUB_ENV
+              ;;
+            "gl-mt3000"|"gl-mt6000")
+              echo "PLATFORM=mediatek" >> $GITHUB_ENV
+              echo "TYPE=filogic" >> $GITHUB_ENV
+              echo "TARGET_DEVICE=mediatek-filogic" >> $GITHUB_ENV
+              echo "PROFILE=glinet_gl-${{ matrix.model }}" >> $GITHUB_ENV
+              echo "BLOSSOM_ARCH=aarch64_cortex-a53" >> $GITHUB_ENV
+              echo "EXTRA_PACKAGES=kmod-usb2 kmod-usb-core kmod-usb-storage luci luci-ssl iwinfo wpad-wolfssl" >> $GITHUB_ENV
+              echo "REMOVED_PACKAGES=-odhcpd -odhcpd-ipv6only -wpad-basic-wolfssl -wpad-basic-mbedtls -wpad-mini" >> $GITHUB_ENV
+              ;;
+          esac
+
+      - name: Setup Build Directory
+        run: |
+          mkdir -p $BUILDDIR
+          if [ "$VERSION" = "snapshot" ]; then
+            echo "IMAGEBUILDER_NAME=openwrt-imagebuilder-${PLATFORM}-${TYPE}.Linux-x86_64" >> $GITHUB_ENV
+            echo "DOWNLOAD_URL=https://downloads.openwrt.org/snapshots/targets/${PLATFORM}/${TYPE}/${IMAGEBUILDER_NAME}.tar.zst" >> $GITHUB_ENV
+            echo "ARCHIVE_EXT=tar.zst" >> $GITHUB_ENV
+          else
+            echo "IMAGEBUILDER_NAME=openwrt-imagebuilder-${VERSION}-${TARGET_DEVICE}.Linux-x86_64" >> $GITHUB_ENV
+            echo "DOWNLOAD_URL=https://downloads.openwrt.org/releases/${VERSION}/targets/${PLATFORM}/${TYPE}/${IMAGEBUILDER_NAME}.tar.xz" >> $GITHUB_ENV
+            echo "ARCHIVE_EXT=tar.xz" >> $GITHUB_ENV
+          fi
+
+      - name: Download and Extract ImageBuilder
+        run: |
+          cd $BUILDDIR
+          if [ ! -f ${IMAGEBUILDER_NAME}.${ARCHIVE_EXT} ]; then
+            curl -C - -O $DOWNLOAD_URL
+          fi
+          if [ "$VERSION" = "snapshot" ]; then
+            tar --zstd -xf ${IMAGEBUILDER_NAME}.${ARCHIVE_EXT}
+          else
+            tar xfJ ${IMAGEBUILDER_NAME}.${ARCHIVE_EXT}
+          fi
+
+      - name: Setup Custom Files and Packages
+        run: |
+          cp -r files $BUILDDIR/${IMAGEBUILDER_NAME}/
+          PACKAGES_DIR="${BUILDDIR}/${IMAGEBUILDER_NAME}/packages/local"
+          mkdir -p "${PACKAGES_DIR}"
+          python3 blossom_download.py "${PACKAGES_DIR}" "${BLOSSOM_ARCH}"
+
+      - name: Generate Package Index
+        run: |
+          cd ${BUILDDIR}/${IMAGEBUILDER_NAME}
+          sudo bash -c 'mkhash() { if [ "$1" = "sha256" ]; then sha256sum "$2" | cut -d" " -f1; else sha256sum "$1" | cut -d" " -f1; fi; }; \
+          export -f mkhash; \
+          export MKHASH=mkhash; \
+          ./scripts/ipkg-make-index.sh packages/local > packages/local/Packages && \
+          gzip -9c packages/local/Packages > packages/local/Packages.gz'
+
       - name: Build Firmware
         run: |
-          chmod +x ./build-firmware
-          ./build-firmware ${{ matrix.model }}
+          TOLLGATE_PACKAGES="tollgate-module-relay-go tollgate-module-whoami-go tollgate-module-crowsnest-go tollgate-module-merchant-go tollgate-module-valve-go golang-doc"
+          COMBINED_PACKAGE_LIST="${REMOVED_PACKAGES} ${BASE_PACKAGES} ${EXTRA_PACKAGES} ${TOLLGATE_PACKAGES}"
+          cd ${BUILDDIR}/${IMAGEBUILDER_NAME}
+          sudo make -j$(nproc) image \
+            PROFILE="${PROFILE}" \
+            PACKAGES="${COMBINED_PACKAGE_LIST}" \
+            FILES="${BUILDDIR}/${IMAGEBUILDER_NAME}/files"
 
       - name: Find Firmware File
         id: find-firmware
