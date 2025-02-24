@@ -153,9 +153,20 @@ jobs:
       - name: Find Firmware File
         id: find-firmware
         run: |
-          FIRMWARE_PATH=$(find /tmp/openwrt-build -name "*sysupgrade.bin" -type f)
-          echo "firmware_path=${FIRMWARE_PATH}" >> $GITHUB_OUTPUT
-          echo "firmware_name=$(basename ${FIRMWARE_PATH})" >> $GITHUB_OUTPUT
+          # Print the directory structure for debugging
+          echo "Directory structure of build output:"
+          ls -R ${BUILDDIR}/${IMAGEBUILDER_NAME}/bin/targets/${PLATFORM}/${TYPE}/
+          # More specific find command using known path structure
+          FIRMWARE_PATH=$(find ${BUILDDIR}/${IMAGEBUILDER_NAME}/bin/targets/${PLATFORM}/${TYPE}/ -name "*${PROFILE}*sysupgrade.bin" -type f)
+          if [ -f "$FIRMWARE_PATH" ]; then
+            echo "Found firmware at: ${FIRMWARE_PATH}"
+            echo "firmware_path=${FIRMWARE_PATH}" >> $GITHUB_OUTPUT
+            echo "firmware_name=$(basename ${FIRMWARE_PATH})" >> $GITHUB_OUTPUT
+          else
+            echo "Error: Firmware file not found!"
+            echo "Searched in: ${BUILDDIR}/${IMAGEBUILDER_NAME}/bin/targets/${PLATFORM}/${TYPE}/"
+            exit 1
+          fi
 
       - name: Upload Firmware Artifact
         uses: actions/upload-artifact@v4
