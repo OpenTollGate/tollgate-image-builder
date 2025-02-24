@@ -80,15 +80,28 @@ jobs:
       - name: Setup Build Directory
         run: |
           mkdir -p $BUILDDIR
+          
+          # First set IMAGEBUILDER_NAME
           if [ "$VERSION" = "snapshot" ]; then
-            echo "IMAGEBUILDER_NAME=openwrt-imagebuilder-${PLATFORM}-${TYPE}.Linux-x86_64" >> $GITHUB_ENV
-            echo "DOWNLOAD_URL=https://downloads.openwrt.org/snapshots/targets/${PLATFORM}/${TYPE}/${IMAGEBUILDER_NAME}.tar.zst" >> $GITHUB_ENV
+            IMAGEBUILDER_NAME="openwrt-imagebuilder-${PLATFORM}-${TYPE}.Linux-x86_64"
+          else
+            IMAGEBUILDER_NAME="openwrt-imagebuilder-${VERSION}-${TARGET_DEVICE}.Linux-x86_64"
+          fi
+          echo "IMAGEBUILDER_NAME=${IMAGEBUILDER_NAME}" >> $GITHUB_ENV
+          
+          # Then use IMAGEBUILDER_NAME to set DOWNLOAD_URL
+          if [ "$VERSION" = "snapshot" ]; then
+            DOWNLOAD_URL="https://downloads.openwrt.org/snapshots/targets/${PLATFORM}/${TYPE}/${IMAGEBUILDER_NAME}.tar.zst"
             echo "ARCHIVE_EXT=tar.zst" >> $GITHUB_ENV
           else
-            echo "IMAGEBUILDER_NAME=openwrt-imagebuilder-${VERSION}-${TARGET_DEVICE}.Linux-x86_64" >> $GITHUB_ENV
-            echo "DOWNLOAD_URL=https://downloads.openwrt.org/releases/${VERSION}/targets/${PLATFORM}/${TYPE}/${IMAGEBUILDER_NAME}.tar.xz" >> $GITHUB_ENV
+            DOWNLOAD_URL="https://downloads.openwrt.org/releases/${VERSION}/targets/${PLATFORM}/${TYPE}/${IMAGEBUILDER_NAME}.tar.xz"
             echo "ARCHIVE_EXT=tar.xz" >> $GITHUB_ENV
           fi
+          echo "DOWNLOAD_URL=${DOWNLOAD_URL}" >> $GITHUB_ENV
+          
+          # Debug output
+          echo "IMAGEBUILDER_NAME: ${IMAGEBUILDER_NAME}"
+          echo "DOWNLOAD_URL: ${DOWNLOAD_URL}"
 
       - name: Download and Extract ImageBuilder
         run: |
