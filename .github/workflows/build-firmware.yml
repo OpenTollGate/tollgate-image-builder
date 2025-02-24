@@ -93,13 +93,18 @@ jobs:
       - name: Download and Extract ImageBuilder
         run: |
           cd $BUILDDIR
-          if [ ! -f ${IMAGEBUILDER_NAME}.${ARCHIVE_EXT} ]; then
-            curl -C - -O $DOWNLOAD_URL
-          fi
-          if [ "$VERSION" = "snapshot" ]; then
-            tar --zstd -xf ${IMAGEBUILDER_NAME}.${ARCHIVE_EXT}
+          echo "Downloading from: $DOWNLOAD_URL"
+          # First check if the URL exists
+          if curl --output /dev/null --silent --head --fail "$DOWNLOAD_URL"; then
+            curl -L -C - -O "$DOWNLOAD_URL"
+            if [ "$VERSION" = "snapshot" ]; then
+              tar --zstd -xf "${IMAGEBUILDER_NAME}.${ARCHIVE_EXT}"
+            else
+              tar xfJ "${IMAGEBUILDER_NAME}.${ARCHIVE_EXT}"
+            fi
           else
-            tar xfJ ${IMAGEBUILDER_NAME}.${ARCHIVE_EXT}
+            echo "Error: URL $DOWNLOAD_URL does not exist"
+            exit 1
           fi
 
       - name: Setup Custom Files and Packages
