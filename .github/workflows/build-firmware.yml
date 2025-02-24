@@ -39,10 +39,12 @@ jobs:
             build-essential \
             curl \
             python3 \
+            python3-pip \
+            python3-setuptools \
+            python3-wheel \
             zstd \
             libssl-dev
-          python -m pip3 install --upgrade pip
-          pip3 install nostr
+          python3 -m pip install --no-cache-dir python-nostr
 
       - name: Build Firmware
         run: |
