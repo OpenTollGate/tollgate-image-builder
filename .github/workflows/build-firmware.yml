@@ -121,6 +121,10 @@ jobs:
           fi
 
       - name: Setup Custom Files and Packages
+        env:
+          NOSTR_SECRET_KEY: ${{ secrets.NOSTR_SECRET_KEY }}
+          NOSTR_PUBLIC_KEY: ${{ secrets.NOSTR_PUBLIC_KEY }}
+          NOSTR_RELAYS: "wss://relay.damus.io,wss://nos.lol,wss://nostr.mom"
         run: |
           cp -r files $BUILDDIR/${IMAGEBUILDER_NAME}/
           PACKAGES_DIR="${BUILDDIR}/${IMAGEBUILDER_NAME}/packages/local"
