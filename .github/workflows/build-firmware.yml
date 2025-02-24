@@ -129,7 +129,7 @@ jobs:
           cp -r files $BUILDDIR/${IMAGEBUILDER_NAME}/
           PACKAGES_DIR="${BUILDDIR}/${IMAGEBUILDER_NAME}/packages/local"
           mkdir -p "${PACKAGES_DIR}"
-          python3 blossom_download.py "${PACKAGES_DIR}" "${BLOSSOM_ARCH}"
+          # python3 blossom_download.py "${PACKAGES_DIR}" "${BLOSSOM_ARCH}"
 
       - name: Generate Package Index
         run: |
@@ -142,7 +142,7 @@ jobs:
 
       - name: Build Firmware
         run: |
-          TOLLGATE_PACKAGES="tollgate-module-relay-go tollgate-module-whoami-go tollgate-module-crowsnest-go tollgate-module-merchant-go tollgate-module-valve-go golang-doc"
+          # TOLLGATE_PACKAGES="tollgate-module-relay-go tollgate-module-whoami-go tollgate-module-crowsnest-go tollgate-module-merchant-go tollgate-module-valve-go golang-doc"
           COMBINED_PACKAGE_LIST="${REMOVED_PACKAGES} ${BASE_PACKAGES} ${EXTRA_PACKAGES} ${TOLLGATE_PACKAGES}"
           cd ${BUILDDIR}/${IMAGEBUILDER_NAME}
           sudo make -j$(nproc) image \
