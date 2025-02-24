@@ -45,8 +45,8 @@ jobs:
 
       - name: Build Firmware
         run: |
-          sudo chmod +x ./build-firmware
-          sudo ./build-firmware ${{ matrix.model }}
+          chmod +x ./build-firmware
+          ./build-firmware ${{ matrix.model }}
 
       - name: Find Firmware File
         id: find-firmware
