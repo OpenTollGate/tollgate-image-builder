@@ -1,5 +1,7 @@
 name: 'Build OpenWRT Image'
 description: 'Builds an OpenWRT firmware image with TollGate packages'
+author: 'c03rad0r'
+
 branding:
   color: orange
   icon: box
